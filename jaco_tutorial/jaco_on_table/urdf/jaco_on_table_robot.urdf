@@ -823,7 +823,7 @@
     <parent link="jaco_fingers_base_link"/>
     <child link="jaco_8_finger_index"/>
     <axis xyz="0 1 0"/>
-    <limit effort="1.5" lower="-0.0045" upper="1.05" velocity="0.2"/>
+    <limit effort="1.5" lower="-0.0045" upper="1.05" velocity="0.3"/>
   </joint>
   <!-- ...........................				-->
   <link name="jaco_9_finger_index_tip">
@@ -944,7 +944,7 @@
     <parent link="jaco_fingers_base_link"/>
     <child link="jaco_8_finger_thumb"/>
     <axis xyz="0 1 0"/>
-    <limit effort="1.5" lower="-0.0045" upper="1.05" velocity="0.2"/>
+    <limit effort="1.5" lower="-0.0045" upper="1.05" velocity="0.3"/>
   </joint>
   <!-- ...........................				-->
   <link name="jaco_9_finger_thumb_tip">
@@ -1055,7 +1055,7 @@
     <parent link="jaco_fingers_base_link"/>
     <child link="jaco_8_finger_pinkie"/>
     <axis xyz="0 1 0"/>
-    <limit effort="1.5" lower="-0.0045" upper="1.05" velocity="0.2"/>
+    <limit effort="1.5" lower="-0.0045" upper="1.05" velocity="0.3"/>
   </joint>
   <!-- ...........................				-->
   <link name="jaco_9_finger_pinkie_tip">
