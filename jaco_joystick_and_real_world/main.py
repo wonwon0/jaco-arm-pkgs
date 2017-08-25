@@ -22,18 +22,32 @@ if __name__ == '__main__':
         try:
             uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
             roslaunch.configure_logging(uuid)
-            launch = roslaunch.parent.ROSLaunchParent(uuid, ["/home/phil/catkin_ws/src/jaco-arm-pkgs/jaco_tutorial/jaco"
+            launch1 = roslaunch.parent.ROSLaunchParent(uuid, ["/home/phil/catkin_ws/src/jaco-arm-pkgs/jaco_tutorial/jaco"
                                                              "_on_table/launch/jaco_on_table_gazebo_controlled.launch"])
 
             # package = 'jaco_on_table'
             # executable = 'jaco_on_table_gazebo_controlled'
             # node = roslaunch.Node(package, executable)
             #launch = roslaunch.scriptapi.ROSLaunch()
-            launch.start()
-            time.sleep(10)
-            client_thread = threading.Thread(target=os.system("python /home/phil/catkin_ws/src/jaco-arm-pkgs/"
-                                                              "jaco_joystick_and_real_world/scripts/"
-                                                              "gazebo_realworld_linker.py gazebo"))
+
+
+            if args.control_type == 'gazebo':
+                launch1.start()
+                #time.sleep(7)
+                client_thread = threading.Thread(target=os.system("python /home/phil/catkin_ws/src/jaco-arm-pkgs/"
+                                                                  "jaco_joystick_and_real_world/scripts/"
+                                                                  "gazebo_realworld_linker.py gazebo"))
+            else:
+                launch2 = roslaunch.parent.ROSLaunchParent(uuid,
+                                                           ["/home/phil/catkin_ws/src/kinova-ros/kinova_bringup/"
+                                                            "launch/kinova_robot.launch"])
+                launch2.start()
+                #time.sleep(3)
+                launch1.start()
+                #time.sleep(7)
+                client_thread = threading.Thread(target=os.system("python /home/phil/catkin_ws/src/jaco-arm-pkgs/"
+                                                                  "jaco_joystick_and_real_world/scripts/"
+                                                                  "gazebo_realworld_linker.py real_world"))
             client_thread.start()
 
 

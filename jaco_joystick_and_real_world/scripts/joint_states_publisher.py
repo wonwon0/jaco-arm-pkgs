@@ -90,7 +90,7 @@ class JointStatePublisher:
             else:
                 if self.last_working_pose is None:
                     self.last_working_pose = latest_joint_positions
-                angular_velocities = convert_to_angular_velocities(velocities, latest_joint_positions, 1.0 / self.rate)
+                angular_velocities = self.convert_to_angular_velocities(velocities, latest_joint_positions, 1.0 / self.rate)
                 angular_velocities = angular_velocities.reshape(1, 6)[0]
                 angular_velocities = np.hstack((angular_velocities, np.array([0, 0, 0])))
                 for idx, controller in enumerate(self.controllers):
@@ -111,13 +111,12 @@ class JointStatePublisher:
             else:
                 real_jaco_joints_states = np.array(real_jaco_joints_states)
                 real_jaco_joints_states *= np.array([-1, 1, -1, -1, -1, -1])
-                real_jaco_joints_states -= np.array([0.,
+                real_jaco_joints_states -= np.array([-np.pi,
                                                      -np.pi / 2.,
                                                      -np.pi / 2.,
                                                      -np.pi,
                                                      -np.pi,
                                                      100 * np.pi / 180.])
-                print(real_jaco_fingers_states)
                 real_jaco_fingers_states = np.array(real_jaco_fingers_states)
                 data_to_send = np.hstack([real_jaco_joints_states, real_jaco_fingers_states])
                 for idx, controller in enumerate(self.controllers):
@@ -143,43 +142,48 @@ class JointStatePublisher:
             #msg.effort.append(joint.effort)
 
 
-def convert_to_angular_velocities(velocities, theta_current, dt):
-    velocities = np.array([[velocities[0]],
-                            [velocities[1]],
-                            [velocities[2]],
-                            [velocities[3]],
-                            [velocities[4]],
-                            [velocities[5]]])
-    theta_current = np.array([[theta_current[0]],
-                               [theta_current[1]],
-                               [theta_current[2]],
-                               [theta_current[3]],
-                               [theta_current[4]],
-                               [theta_current[5]]])
-    cartesian_pose, rotation_matrix = direct_kinematics_jaco(theta_current)
+    def convert_to_angular_velocities(self, velocities, theta_current, dt):
+        velocities = np.array([[velocities[0]],
+                                [velocities[1]],
+                                [velocities[2]],
+                                [velocities[3]],
+                                [velocities[4]],
+                                [velocities[5]]])
+        theta_current = np.array([[theta_current[0]],
+                                   [theta_current[1]],
+                                   [theta_current[2]],
+                                   [theta_current[3]],
+                                   [theta_current[4]],
+                                   [theta_current[5]]])
+        cartesian_pose, rotation_matrix = direct_kinematics_jaco(theta_current)
 
-    next_cartesian_pose = cartesian_pose + np.multiply(velocities[0:3, 0].reshape(3, 1), dt)
-    euler_angles = rotationMatrixToEulerAngles(rotation_matrix)
-    next_euler_angles = np.array(euler_angles).reshape(3, 1) + np.multiply(velocities[3:6, 0].reshape(3, 1), dt)
-    next_rotation_matrix = eulerAnglesToRotationMatrix([next_euler_angles[0, 0],
-                                                        next_euler_angles[1, 0],
-                                                        next_euler_angles[2, 0]])
+        next_cartesian_pose = cartesian_pose + np.multiply(velocities[0:3, 0].reshape(3, 1), dt)
+        euler_angles = rotationMatrixToEulerAngles(rotation_matrix)
+        if velocities[3] == velocities[4] == velocities[5] == 0.:
+            next_euler_angles = euler_angles
+            next_rotation_matrix = rotation_matrix
+        else:
+            next_euler_angles = np.array(euler_angles).reshape(3, 1) + np.multiply(velocities[3:6, 0].reshape(3, 1), dt)
+            next_rotation_matrix = eulerAnglesToRotationMatrix([next_euler_angles[0, 0],
+                                                            next_euler_angles[1, 0],
+                                                            next_euler_angles[2, 0]])
 
-    next_theta, success, sol_approx = inverse_kinematics_jaco(next_cartesian_pose, rotation_matrix, theta_current)
-    # print(np.unwrap(theta_current), "theta_current")
-    # print(np.unwrap(next_theta), "next_theta")
-    # print(np.subtract(np.unwrap(next_theta), np.unwrap(theta_current)), "theta_diff")
-    # print(dt)
-    # next_theta[1, 0] *= -1.0
-    angular_velocity = np.divide(np.subtract(next_theta, theta_current), dt)
-    for idx, velocity in enumerate(angular_velocity.reshape(1, 6)[0]):
-        if idx == 1 or idx == 3 or idx == 4 or idx == 5:
-            angular_velocity[idx] = -velocity
-        if velocity*dt > np.pi:
-            angular_velocity[idx] = velocity - np.pi/dt
-        elif velocity*dt < -np.pi:
-            angular_velocity[idx] = velocity + np.pi / dt
-    return angular_velocity
+        next_theta, success, sol_approx = inverse_kinematics_jaco(next_cartesian_pose, rotation_matrix, theta_current)
+
+        # print(np.unwrap(theta_current), "theta_current")
+        # print(np.unwrap(next_theta), "next_theta")
+        # print(np.subtract(np.unwrap(next_theta), np.unwrap(theta_current)), "theta_diff")
+        # print(dt)
+        # next_theta[1, 0] *= -1.0
+        angular_velocity = np.divide(np.subtract(next_theta, theta_current), dt)
+        for idx, velocity in enumerate(angular_velocity.reshape(1, 6)[0]):
+            if idx == 1 or idx == 3 or idx == 4 or idx == 5:
+                angular_velocity[idx] = -velocity
+            # if velocity*dt > np.pi:
+            #     angular_velocity[idx] = velocity - np.pi/dt
+            # elif velocity*dt < -np.pi:
+            #     angular_velocity[idx] = velocity + np.pi / dt
+        return angular_velocity
 
 
 # Calculates Rotation Matrix given euler angles.

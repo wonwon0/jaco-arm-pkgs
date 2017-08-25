@@ -58,6 +58,7 @@ def inverse_kinematics_jaco(t_target, Q_target, ThetaEstimate):
     alpha = np.array(np.hstack((np.pi/2., np.pi, np.pi/2., 2.*aa, 2.*aa, np.pi)))
     sample_time = 0.005
     #%Testing Purposes ---------------------------------------
+
     iter_max = 30
     f = np.zeros(12).reshape(12, 1)
     Output = np.array([[0], [0], [0], [0], [0], [0]])
@@ -186,7 +187,7 @@ def inverse_kinematics_jaco(t_target, Q_target, ThetaEstimate):
         f[6:9, 0] = np.dot(Q-Q_target, s3)
         f[9:12, 0] = (r1-t_target).reshape(3)
         # -- Stop criteria -------------------------------------------------------------------------------------------
-        epsilon = 0.01
+        epsilon = 0.001
         stop = np.max(np.abs(f)) < epsilon
 
         Ek = np.dot(np.multiply(0.5, f.conj().T)[0], f)
