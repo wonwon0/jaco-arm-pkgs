@@ -187,7 +187,7 @@ def inverse_kinematics_jaco(t_target, Q_target, ThetaEstimate):
         f[6:9, 0] = np.dot(Q-Q_target, s3)
         f[9:12, 0] = (r1-t_target).reshape(3)
         # -- Stop criteria -------------------------------------------------------------------------------------------
-        epsilon = 0.001
+        epsilon = 0.000001
         stop = np.max(np.abs(f)) < epsilon
 
         Ek = np.dot(np.multiply(0.5, f.conj().T)[0], f)

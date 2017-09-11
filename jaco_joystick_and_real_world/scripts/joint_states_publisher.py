@@ -165,10 +165,10 @@ class JointStatePublisher:
         else:
             next_euler_angles = np.array(euler_angles).reshape(3, 1) + np.multiply(velocities[3:6, 0].reshape(3, 1), dt)
             next_rotation_matrix = eulerAnglesToRotationMatrix([next_euler_angles[0, 0],
-                                                            next_euler_angles[1, 0],
-                                                            next_euler_angles[2, 0]])
+                                                                next_euler_angles[1, 0],
+                                                                next_euler_angles[2, 0]])
 
-        next_theta, success, sol_approx = inverse_kinematics_jaco(next_cartesian_pose, rotation_matrix, theta_current)
+        next_theta, success, sol_approx = inverse_kinematics_jaco(next_cartesian_pose, next_rotation_matrix, theta_current)
 
         # print(np.unwrap(theta_current), "theta_current")
         # print(np.unwrap(next_theta), "next_theta")
@@ -177,7 +177,7 @@ class JointStatePublisher:
         # next_theta[1, 0] *= -1.0
         angular_velocity = np.divide(np.subtract(next_theta, theta_current), dt)
         for idx, velocity in enumerate(angular_velocity.reshape(1, 6)[0]):
-            if idx == 1 or idx == 3 or idx == 4 or idx == 5:
+            if idx == 0 or idx == 1 or idx == 3 or idx == 4 or idx == 5:
                 angular_velocity[idx] = -velocity
             # if velocity*dt > np.pi:
             #     angular_velocity[idx] = velocity - np.pi/dt
@@ -221,6 +221,7 @@ def isRotationMatrix(R):
 # The result is the same as MATLAB except the order
 # of the euler angles ( x and z are swapped ).
 def rotationMatrixToEulerAngles(R):
+
     assert (isRotationMatrix(R))
 
     sy = math.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])

@@ -18,12 +18,16 @@ def argumentParser(argument):
 if __name__ == '__main__':
 
     args = argumentParser(None)
+    dir = os.getcwd()
+
+    jaco_gazebo_path = dir + '/../jaco_tutorial/jaco_on_table/launch/jaco_on_table_gazebo_controlled.launch'
     if (args.control_type == 'gazebo') or (args.control_type == 'real_world'):
         try:
             uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
             roslaunch.configure_logging(uuid)
-            launch1 = roslaunch.parent.ROSLaunchParent(uuid, ["/home/phil/catkin_ws/src/jaco-arm-pkgs/jaco_tutorial/jaco"
-                                                             "_on_table/launch/jaco_on_table_gazebo_controlled.launch"])
+            print(dir)
+            print(jaco_gazebo_path)
+            launch1 = roslaunch.parent.ROSLaunchParent(uuid, [jaco_gazebo_path])
 
             # package = 'jaco_on_table'
             # executable = 'jaco_on_table_gazebo_controlled'
@@ -34,20 +38,16 @@ if __name__ == '__main__':
             if args.control_type == 'gazebo':
                 launch1.start()
                 #time.sleep(7)
-                client_thread = threading.Thread(target=os.system("python /home/phil/catkin_ws/src/jaco-arm-pkgs/"
-                                                                  "jaco_joystick_and_real_world/scripts/"
-                                                                  "gazebo_realworld_linker.py gazebo"))
+                client_thread = threading.Thread(target=os.system("python scripts/gazebo_realworld_linker.py gazebo"))
             else:
-                launch2 = roslaunch.parent.ROSLaunchParent(uuid,
-                                                           ["/home/phil/catkin_ws/src/kinova-ros/kinova_bringup/"
-                                                            "launch/kinova_robot.launch"])
+                kinova_robot_path = dir + '/..kinova-ros/kinova_bringup/launch/kinova_robot.launch'
+                launch2 = roslaunch.parent.ROSLaunchParent(uuid, [kinova_robot_path])
                 launch2.start()
                 #time.sleep(3)
                 launch1.start()
                 #time.sleep(7)
-                client_thread = threading.Thread(target=os.system("python /home/phil/catkin_ws/src/jaco-arm-pkgs/"
-                                                                  "jaco_joystick_and_real_world/scripts/"
-                                                                  "gazebo_realworld_linker.py real_world"))
+                client_thread = threading.Thread(target=os.system("python "
+                                                                  "scripts/gazebo_realworld_linker.py real_world"))
             client_thread.start()
 
 
