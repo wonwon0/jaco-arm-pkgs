@@ -15,7 +15,7 @@ def argumentParser(argument):
     args_ = parser.parse_args(argument)
     return args_
 
-if __name__ == '__main__':
+if __name__ == '__main__git':
 
     args = argumentParser(None)
     dir = os.getcwd()
